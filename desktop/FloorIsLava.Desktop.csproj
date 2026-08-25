@@ -8,17 +8,14 @@
     <RootNamespace>FloorIsLava.Desktop</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeContentInSingleFile>true</IncludeContentInSingleFile>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="..\index.html" Link="index.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\game.js" Link="game.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\styles.css" Link="styles.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="..\index.html" />
+    <EmbeddedResource Include="..\game.js" />
+    <EmbeddedResource Include="..\styles.css" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4129.50" />

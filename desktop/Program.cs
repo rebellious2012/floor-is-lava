@@ -18,11 +18,47 @@ public class MainForm : Form
 
     private async void OnLoad(object? sender, EventArgs e)
     {
-        await _webView.EnsureCoreWebView2Async();
-        string baseDir = AppContext.BaseDirectory;
-        _webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-            "app.local", baseDir, CoreWebView2HostResourceAccessKind.Allow);
-        _webView.CoreWebView2.Navigate("https://app.local/index.html");
+        try
+        {
+            await _webView.EnsureCoreWebView2Async();
+            _webView.CoreWebView2.NewWindowRequested += (s, a) =>
+            {
+                a.Handled = true;
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = a.Uri, UseShellExecute = true });
+                }
+                catch { }
+            };
+
+            var asm = typeof(MainForm).Assembly;
+            string ReadRes(string suffix)
+            {
+                string found = null;
+                foreach (var n in asm.GetManifestResourceNames())
+                {
+                    if (n.EndsWith(suffix)) { found = n; break; }
+                }
+                if (found == null) throw new System.Exception("Resource not found: " + suffix);
+                using var stream = asm.GetManifestResourceStream(found);
+                using var reader = new System.IO.StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+
+            string html = ReadRes("index.html");
+            string css = ReadRes("styles.css");
+            string js = ReadRes("game.js");
+            html = html.Replace("<link rel=\"stylesheet\" href=\"./styles.css\">", "<style>" + css + "</style>");
+            html = html.Replace("<script src=\"./game.js\"></script>", "<script>" + js + "</script>");
+
+            _webView.CoreWebView2.NavigateToString(html);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                "Не удалось запустить игру (WebView2).\nВозможно, на этом компьютере не установлен Microsoft Edge WebView2 Runtime.\n\nСкачайте и установите его:\nhttps://go.microsoft.com/fwlink/p/?LinkId=2124703\n\nОшибка: " + ex.Message,
+                "Floor Is Lava", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     [STAThread]
