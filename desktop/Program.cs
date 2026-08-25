@@ -52,6 +52,7 @@ public class MainForm : Form
             html = html.Replace("<script src=\"./game.js\"></script>", "<script>" + js + "</script>");
 
             _webView.CoreWebView2.NavigateToString(html);
+            _webView.Focus();
         }
         catch (Exception ex)
         {
