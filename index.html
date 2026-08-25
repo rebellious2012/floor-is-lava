@@ -19,6 +19,16 @@
     #playerName{width:200px;max-width:62vw;padding:9px 11px;border-radius:9px;border:1px solid #3a3a4a;background:#1c1b24;color:#f7f4e9;font:inherit;font-size:15px;user-select:text;-webkit-user-select:text;-moz-user-select:text;touch-action:auto}
     #playerName:focus{outline:none;border-color:#73d16a}
     #playerNameLabel{font-size:15px;color:#ffd166}
+    .leaderboard{margin-top:14px;text-align:left;font-size:13px;color:#cfc9dd}
+    .leaderboard h2{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9a93a8}
+    .leaderboard ol{margin:0;padding:0;list-style:none}
+    .leaderboard li{display:flex;gap:10px;padding:4px 2px;border-top:1px solid rgba(255,255,255,.08)}
+    .leaderboard li.me{color:#ffd166;font-weight:800}
+    .leaderboard .rank{width:20px;color:#9a93a8;text-align:right;font-variant-numeric:tabular-nums}
+    .leaderboard .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .leaderboard .sc{font-variant-numeric:tabular-nums;font-weight:700}
+    .leaderboard .empty{color:#7d7689;font-style:italic}
+    .panel{max-height:calc(100dvh - 48px);overflow:auto}
   </style>
 </head>
 <body>
@@ -42,6 +52,7 @@
           <label class="name-row"><span>Name</span><input id="playerName" type="text" maxlength="16" placeholder="Your name" autocomplete="off" spellcheck="false"></label>
           <button id="playButton" type="button">Play</button>
           <button id="checkUpdateButton" type="button">Проверить обновления</button>
+          <div id="leaderboard" class="leaderboard"></div>
         </div>
       </div>
     </section>

@@ -30,6 +30,7 @@
   const vibrationToggle = document.getElementById("vibrationToggle");
   const playerNameInput = document.getElementById("playerName");
   const playerNameLabel = document.getElementById("playerNameLabel");
+  const leaderboardEl = document.getElementById("leaderboard");
 
   const analytics = { track(name, data = {}) { console.info("[analytics]", name, data); } };
   const ads = { maybeShowInterstitial() {}, requestRewardedContinue() { return Promise.resolve(false); } };
@@ -67,6 +68,7 @@
       this.bestScore = name ? (this.scores[name] || 0) : (this.scores[""] || 0);
       bestScoreEl.textContent = this.bestScore;
       if (playerNameLabel) playerNameLabel.textContent = name || "—";
+      renderLeaderboard();
     }
     reset() { this.score = 0; this.render(); }
     addPoint(level) {
@@ -80,6 +82,13 @@
         bestScoreEl.textContent = this.bestScore;
         analytics.track("new_best_score", { score: this.score, best_score: this.bestScore, name: this.name, difficulty_level: level });
       }
+    }
+    getLeaderboard(limit = 10) {
+      return Object.keys(this.scores)
+        .map(name => ({ name, score: this.scores[name] }))
+        .filter(e => e.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
     }
     render() { scoreEl.textContent = this.score; }
   }
@@ -197,8 +206,8 @@
   }
 
   class UIManager {
-    showMenu() { overlay.classList.remove("hidden"); overlayText.textContent = "Tap the green tile in the next row. The lava rises — keep climbing!"; playButton.textContent = "Play"; }
-    showGameOver(reason, score, best, name) { overlay.classList.remove("hidden"); overlayText.textContent = `${reason} ${name ? name + ", " : ""}Score ${score}. Best ${best}.`; playButton.textContent = "Play Again"; }
+    showMenu() { overlay.classList.remove("hidden"); overlayText.textContent = "Tap the green tile in the next row. The lava rises — keep climbing!"; playButton.textContent = "Play"; renderLeaderboard(); }
+    showGameOver(reason, score, best, name) { overlay.classList.remove("hidden"); overlayText.textContent = `${reason} ${name ? name + ", " : ""}Score ${score}. Best ${best}.`; playButton.textContent = "Play Again"; renderLeaderboard(); }
     hideOverlay() { overlay.classList.add("hidden"); }
     updateDanger(ratio) {
       const safe = Math.max(0, Math.min(1, ratio));
@@ -372,6 +381,27 @@
 
   function lerp(a, b, t) { return a + (b - a) * t; }
   function roundRect(context, x, y, width, height, radius) { const r = Math.min(radius, width / 2, height / 2); context.beginPath(); context.moveTo(x + r, y); context.arcTo(x + width, y, x + width, y + height, r); context.arcTo(x + width, y + height, x, y + height, r); context.arcTo(x, y + height, x, y, r); context.arcTo(x, y, x + width, y, r); context.closePath(); }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function renderLeaderboard() {
+    if (!leaderboardEl) return;
+    const entries = game.score.getLeaderboard(10);
+    if (!entries.length) {
+      leaderboardEl.innerHTML = '<h2>Top players</h2><div class="empty">No scores yet — be the first!</div>';
+      return;
+    }
+    let html = '<h2>Top players</h2><ol>';
+    entries.forEach((e, i) => {
+      const me = (e.name || "") === (game.score.name || "") ? ' class="me"' : "";
+      const nm = e.name ? escapeHtml(e.name) : "Anonymous";
+      html += `<li${me}><span class="rank">${i + 1}</span><span class="nm">${nm}</span><span class="sc">${e.score}</span></li>`;
+    });
+    html += "</ol>";
+    leaderboardEl.innerHTML = html;
+  }
 
   const APP_VERSION = "0.1.0";
   const UPDATE_URL = "https://cdn.jsdelivr.net/gh/rebellious2012/floor-is-lava@main/version.json";
