@@ -10,6 +10,8 @@
     startColumn: 2,
     moveDuration: 185,
     storageKey: "floor-is-lava-best-score",
+    nameKey: "floor-is-lava-player-name",
+    scoresKey: "floor-is-lava-scores",
     baseScrollSpeed: 0.9,
     scrollSpeedPerScore: 0.03,
     maxScrollSpeed: 4.5,
@@ -26,6 +28,8 @@
   const playButton = document.getElementById("playButton");
   const soundToggle = document.getElementById("soundToggle");
   const vibrationToggle = document.getElementById("vibrationToggle");
+  const playerNameInput = document.getElementById("playerName");
+  const playerNameLabel = document.getElementById("playerNameLabel");
 
   const analytics = { track(name, data = {}) { console.info("[analytics]", name, data); } };
   const ads = { maybeShowInterstitial() {}, requestRewardedContinue() { return Promise.resolve(false); } };
@@ -45,18 +49,36 @@
   class ScoreManager {
     constructor() {
       this.score = 0;
-      this.bestScore = Number(safeStorage.get(CONFIG.storageKey) || 0);
+      this.name = safeStorage.get(CONFIG.nameKey) || "";
+      let scores = {};
+      try { scores = JSON.parse(safeStorage.get(CONFIG.scoresKey) || "{}") || {}; } catch (e) { scores = {}; }
+      if (Object.keys(scores).length === 0) {
+        const legacy = Number(safeStorage.get(CONFIG.storageKey) || 0);
+        if (legacy > 0) { scores[this.name || ""] = legacy; safeStorage.set(CONFIG.scoresKey, JSON.stringify(scores)); }
+      }
+      this.scores = scores;
+      this.bestScore = this.name ? (this.scores[this.name] || 0) : (this.scores[""] || 0);
       bestScoreEl.textContent = this.bestScore;
+      if (playerNameLabel) playerNameLabel.textContent = this.name || "—";
+    }
+    setName(name) {
+      this.name = name;
+      safeStorage.set(CONFIG.nameKey, name);
+      this.bestScore = name ? (this.scores[name] || 0) : (this.scores[""] || 0);
+      bestScoreEl.textContent = this.bestScore;
+      if (playerNameLabel) playerNameLabel.textContent = name || "—";
     }
     reset() { this.score = 0; this.render(); }
     addPoint(level) {
       this.score += 1;
       this.render();
-      if (this.score > this.bestScore) {
+      const key = this.name || "";
+      if (this.score > (this.scores[key] || 0)) {
+        this.scores[key] = this.score;
+        safeStorage.set(CONFIG.scoresKey, JSON.stringify(this.scores));
         this.bestScore = this.score;
-        safeStorage.set(CONFIG.storageKey, String(this.bestScore));
         bestScoreEl.textContent = this.bestScore;
-        analytics.track("new_best_score", { score: this.score, best_score: this.bestScore, difficulty_level: level });
+        analytics.track("new_best_score", { score: this.score, best_score: this.bestScore, name: this.name, difficulty_level: level });
       }
     }
     render() { scoreEl.textContent = this.score; }
@@ -176,7 +198,7 @@
 
   class UIManager {
     showMenu() { overlay.classList.remove("hidden"); overlayText.textContent = "Tap the green tile in the next row. The lava rises — keep climbing!"; playButton.textContent = "Play"; }
-    showGameOver(reason, score, best) { overlay.classList.remove("hidden"); overlayText.textContent = `${reason} Score ${score}. Best ${best}.`; playButton.textContent = "Play Again"; }
+    showGameOver(reason, score, best, name) { overlay.classList.remove("hidden"); overlayText.textContent = `${reason} ${name ? name + ", " : ""}Score ${score}. Best ${best}.`; playButton.textContent = "Play Again"; }
     hideOverlay() { overlay.classList.add("hidden"); }
     updateDanger(ratio) {
       const safe = Math.max(0, Math.min(1, ratio));
@@ -295,7 +317,7 @@
     constructor() {
       this.state = GameState.MENU; this.previousState = GameState.MENU; this.difficulty = new DifficultyManager(); this.score = new ScoreManager(); this.audio = new AudioManager(); this.vibration = new VibrationManager(); this.board = new BoardManager(this.difficulty); this.player = new PlayerController(); this.ui = new UIManager(); this.renderer = new Renderer(this.board, this.player); this.lavaRow = 0; this.lastFrame = 0; this.startedAt = 0;
     }
-    boot() { this.board.reset(); this.renderer.resize(); this.ui.showMenu(); this.bindEvents(); requestAnimationFrame(now => this.loop(now)); }
+    boot() { this.board.reset(); this.renderer.resize(); this.ui.showMenu(); if (playerNameInput) playerNameInput.value = this.score.name; this.bindEvents(); requestAnimationFrame(now => this.loop(now)); }
     bindEvents() {
       window.addEventListener("resize", () => this.renderer.resize());
       window.addEventListener("blur", () => this.pause()); window.addEventListener("focus", () => this.resume());
@@ -304,6 +326,7 @@
       playButton.addEventListener("click", () => this.state === GameState.GAME_OVER ? this.restart() : this.startGame());
       soundToggle.addEventListener("click", () => this.audio.setEnabled(!this.audio.enabled));
       vibrationToggle.addEventListener("click", () => this.vibration.setEnabled(!this.vibration.enabled));
+      if (playerNameInput) playerNameInput.addEventListener("input", () => this.score.setName(playerNameInput.value.trim().slice(0, 16)));
     }
     startGame() { this.state = GameState.PLAYING; this.score.reset(); this.player.reset(); this.board.reset(); this.lavaRow = this.player.row - CONFIG.lavaStartGap; this.lastFrame = 0; this.startedAt = performance.now(); this.ui.hideOverlay(); analytics.track("game_start"); }
     restart() { analytics.track("game_restart", this.eventData()); this.startGame(); }
@@ -338,7 +361,7 @@
     }
     pause() { if (this.state !== GameState.PLAYING && this.state !== GameState.MOVING) return; this.previousState = this.state; this.state = GameState.PAUSED; }
     resume() { if (this.state !== GameState.PAUSED) return; this.state = this.previousState === GameState.MOVING ? GameState.MOVING : GameState.PLAYING; this.lastFrame = 0; }
-    endGame(reason) { if (this.state === GameState.GAME_OVER) return; this.state = GameState.GAME_OVER; ads.maybeShowInterstitial(); analytics.track("game_over", { ...this.eventData(), reason }); this.ui.showGameOver(reason, this.score.score, this.score.bestScore); }
+    endGame(reason) { if (this.state === GameState.GAME_OVER) return; this.state = GameState.GAME_OVER; ads.maybeShowInterstitial(); analytics.track("game_over", { ...this.eventData(), reason, name: this.score.name }); this.ui.showGameOver(reason, this.score.score, this.score.bestScore, this.score.name); }
     getDangerRatio() {
       if (this.state !== GameState.PLAYING && this.state !== GameState.MOVING) return 1;
       const distance = this.player.renderRow - this.lavaRow;

@@ -12,6 +12,13 @@
     #updateBanner #updateBtn{border:none;border-radius:8px;padding:6px 14px;background:#111016;color:#fff;cursor:pointer}
     #updateBanner #updateClose{margin-left:auto;background:transparent;color:#111016;font-size:20px;line-height:1;padding:2px 8px}
     #checkUpdateButton{margin-top:12px;width:100%}
+    .hud{grid-template-columns:64px 1fr 64px}
+    .hud .timer-wrap{grid-column:1/-1;margin-top:6px}
+    .name-row{display:flex;align-items:center;gap:8px;justify-content:center;margin:8px 0 4px}
+    .name-row span{font-size:13px;color:#cfc9dd}
+    #playerName{width:200px;max-width:62vw;padding:9px 11px;border-radius:9px;border:1px solid #3a3a4a;background:#1c1b24;color:#f7f4e9;font:inherit;font-size:15px}
+    #playerName:focus{outline:none;border-color:#73d16a}
+    #playerNameLabel{font-size:15px;color:#ffd166}
   </style>
 </head>
 <body>
@@ -19,9 +26,9 @@
     <section class="game-shell">
       <div class="hud" aria-live="polite">
         <div><span class="label">Score</span><strong id="score">0</strong></div>
-        <div class="timer-wrap" aria-label="Decision timer"><span id="timerFill"></span></div>
+        <div><span class="label">Player</span><strong id="playerNameLabel">—</strong></div>
         <div><span class="label">Best</span><strong id="bestScore">0</strong></div>
-      </div>
+        <div class="timer-wrap" aria-label="Decision timer"><span id="timerFill"></span></div>
       <canvas id="gameCanvas" width="420" height="760" aria-label="Game board"></canvas>
       <div class="controls">
         <button id="soundToggle" type="button" aria-pressed="true">Sound On</button>
@@ -31,6 +38,7 @@
         <div class="panel">
           <h1>Floor Is Lava</h1>
           <p id="overlayText">Tap the green tile in the next row. Avoid lava. Move fast.</p>
+          <label class="name-row"><span>Name</span><input id="playerName" type="text" maxlength="16" placeholder="Your name" autocomplete="off" spellcheck="false"></label>
           <button id="playButton" type="button">Play</button>
           <button id="checkUpdateButton" type="button">Проверить обновления</button>
         </div>
