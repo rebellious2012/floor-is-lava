@@ -6,6 +6,13 @@
   <meta name="theme-color" content="#111016">
   <title>Floor Is Lava</title>
   <link rel="stylesheet" href="./styles.css">
+  <style>
+    #updateBanner{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#ffb300;color:#111016;font-weight:800;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+    #updateBanner[hidden]{display:none}
+    #updateBanner #updateBtn{border:none;border-radius:8px;padding:6px 14px;background:#111016;color:#fff;cursor:pointer}
+    #updateBanner #updateClose{margin-left:auto;background:transparent;color:#111016;font-size:20px;line-height:1;padding:2px 8px}
+    #checkUpdateButton{margin-top:12px;width:100%}
+  </style>
 </head>
 <body>
   <main class="app" aria-label="Floor Is Lava game">
@@ -25,9 +32,15 @@
           <h1>Floor Is Lava</h1>
           <p id="overlayText">Tap the green tile in the next row. Avoid lava. Move fast.</p>
           <button id="playButton" type="button">Play</button>
+          <button id="checkUpdateButton" type="button">Проверить обновления</button>
         </div>
       </div>
     </section>
+  <div id="updateBanner" hidden>
+    <span id="updateText"></span>
+    <button id="updateBtn" type="button">Обновить</button>
+    <button id="updateClose" type="button" aria-label="Закрыть">×</button>
+  </div>
   </main>
   <script src="./game.js"></script>
 </body>

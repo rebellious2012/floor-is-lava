@@ -345,6 +345,50 @@
   function lerp(a, b, t) { return a + (b - a) * t; }
   function roundRect(context, x, y, width, height, radius) { const r = Math.min(radius, width / 2, height / 2); context.beginPath(); context.moveTo(x + r, y); context.arcTo(x + width, y, x + width, y + height, r); context.arcTo(x + width, y + height, x, y + height, r); context.arcTo(x, y + height, x, y, r); context.arcTo(x, y, x + width, y, r); context.closePath(); }
 
+  const APP_VERSION = "0.1.0";
+  const UPDATE_URL = "https://cdn.jsdelivr.net/gh/rebellious2012/floor-is-lava@main/version.json";
+
+  function parseVersion(v) { return String(v).split(".").map(n => parseInt(n, 10) || 0); }
+  function compareVersions(a, b) {
+    const pa = parseVersion(a), pb = parseVersion(b);
+    const len = Math.max(pa.length, pb.length);
+    for (let i = 0; i < len; i += 1) {
+      const x = pa[i] || 0, y = pb[i] || 0;
+      if (x > y) return 1;
+      if (x < y) return -1;
+    }
+    return 0;
+  }
+
+  const updateBanner = document.getElementById("updateBanner");
+  const updateText = document.getElementById("updateText");
+  const updateBtn = document.getElementById("updateBtn");
+  const updateClose = document.getElementById("updateClose");
+  const checkUpdateButton = document.getElementById("checkUpdateButton");
+  let updateUrl = null;
+
+  function showUpdateBanner(data) {
+    updateUrl = data.windows || data.android || data.url;
+    updateText.textContent = `Доступна новая версия ${data.version}`;
+    updateBanner.hidden = false;
+  }
+  function hideUpdateBanner() { updateBanner.hidden = true; }
+
+  async function checkForUpdate() {
+    try {
+      const res = await fetch(UPDATE_URL, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (compareVersions(data.version, APP_VERSION) > 0) showUpdateBanner(data);
+    } catch (e) { /* offline or blocked: ignore */ }
+  }
+
+  if (updateBtn) updateBtn.addEventListener("click", () => { if (updateUrl) window.open(updateUrl, "_blank"); });
+  if (updateClose) updateClose.addEventListener("click", hideUpdateBanner);
+  if (checkUpdateButton) checkUpdateButton.addEventListener("click", checkForUpdate);
+
+  checkForUpdate();
+
   const game = new GameManager();
   game.boot();
 })();
