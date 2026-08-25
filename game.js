@@ -37,10 +37,15 @@
     getMoveDuration(score) { return Math.max(108, CONFIG.moveDuration - score * 1.4); }
   }
 
+  const safeStorage = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
   class ScoreManager {
     constructor() {
       this.score = 0;
-      this.bestScore = Number(localStorage.getItem(CONFIG.storageKey) || 0);
+      this.bestScore = Number(safeStorage.get(CONFIG.storageKey) || 0);
       bestScoreEl.textContent = this.bestScore;
     }
     reset() { this.score = 0; this.render(); }
@@ -49,7 +54,7 @@
       this.render();
       if (this.score > this.bestScore) {
         this.bestScore = this.score;
-        localStorage.setItem(CONFIG.storageKey, String(this.bestScore));
+        safeStorage.set(CONFIG.storageKey, String(this.bestScore));
         bestScoreEl.textContent = this.bestScore;
         analytics.track("new_best_score", { score: this.score, best_score: this.bestScore, difficulty_level: level });
       }
