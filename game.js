@@ -30,10 +30,7 @@
   const vibrationToggle = document.getElementById("vibrationToggle");
   const playerNameInput = document.getElementById("playerName");
   const playerNameLabel = document.getElementById("playerNameLabel");
-  const leaderboardEl = document.getElementById("leaderboardList");
-  const leaderboardButton = document.getElementById("leaderboardButton");
-  const leaderboardView = document.getElementById("leaderboardView");
-  const leaderboardClose = document.getElementById("leaderboardClose");
+  const leaderboardEl = document.getElementById("leaderboard");
 
   const analytics = { track(name, data = {}) { console.info("[analytics]", name, data); } };
   const ads = { maybeShowInterstitial() {}, requestRewardedContinue() { return Promise.resolve(false); } };
@@ -209,8 +206,8 @@
   }
 
   class UIManager {
-    showMenu() { overlay.classList.remove("hidden"); overlayText.textContent = "Tap the green tile in the next row. The lava rises — keep climbing!"; playButton.textContent = "Play"; }
-    showGameOver(reason, score, best, name) { overlay.classList.remove("hidden"); overlayText.textContent = `${reason} ${name ? name + ", " : ""}Score ${score}. Best ${best}.`; playButton.textContent = "Play Again"; }
+    showMenu() { overlay.classList.remove("hidden"); overlayText.textContent = "Tap the green tile in the next row. The lava rises — keep climbing!"; playButton.textContent = "Play"; renderLeaderboard(); }
+    showGameOver(reason, score, best, name) { overlay.classList.remove("hidden"); overlayText.textContent = `${reason} ${name ? name + ", " : ""}Score ${score}. Best ${best}.`; playButton.textContent = "Play Again"; renderLeaderboard(); }
     hideOverlay() { overlay.classList.add("hidden"); }
     updateDanger(ratio) {
       const safe = Math.max(0, Math.min(1, ratio));
@@ -339,8 +336,6 @@
       soundToggle.addEventListener("click", () => this.audio.setEnabled(!this.audio.enabled));
       vibrationToggle.addEventListener("click", () => this.vibration.setEnabled(!this.vibration.enabled));
       if (playerNameInput) playerNameInput.addEventListener("input", () => this.score.setName(playerNameInput.value.trim().slice(0, 16)));
-      if (leaderboardButton) leaderboardButton.addEventListener("click", () => { renderLeaderboard(); leaderboardView.classList.remove("hidden"); });
-      if (leaderboardClose) leaderboardClose.addEventListener("click", () => leaderboardView.classList.add("hidden"));
     }
     startGame() { this.state = GameState.PLAYING; this.score.reset(); this.player.reset(); this.board.reset(); this.lavaRow = this.player.row - CONFIG.lavaStartGap; this.lastFrame = 0; this.startedAt = performance.now(); this.ui.hideOverlay(); analytics.track("game_start"); }
     restart() { analytics.track("game_restart", this.eventData()); this.startGame(); }
