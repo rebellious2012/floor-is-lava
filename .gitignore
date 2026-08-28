@@ -11,3 +11,8 @@ Thumbs.db
 .DS_Store
 *.suo
 *.user
+
+# Android signing keystore / password (NEVER commit)
+maui/*.keystore
+maui/*.pass.txt
+maui/keystore*
