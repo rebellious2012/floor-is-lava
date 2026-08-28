@@ -427,7 +427,7 @@
 
   function showUpdateBanner(data) {
     updateUrl = data.windows || data.android || data.url;
-    updateText.textContent = `Доступна новая версия ${data.version}`;
+    updateText.textContent = `New version ${data.version} available`;
     updateBanner.hidden = false;
   }
   function hideUpdateBanner() { updateBanner.hidden = true; }
