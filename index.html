@@ -29,6 +29,13 @@
     .leaderboard .sc{font-variant-numeric:tabular-nums;font-weight:700}
     .leaderboard .empty{color:#7d7689;font-style:italic}
     .panel{max-height:calc(100dvh - 48px);overflow:auto}
+    .link-btn{margin-top:12px;width:100%;min-height:34px;font-size:12px;font-weight:700;color:#9a93a8;background:transparent;border:1px solid rgba(255,255,255,.18)}
+    .link-btn:active{transform:translateY(1px)}
+    #leaderboardView{z-index:6}
+    #leaderboardView .panel{max-width:360px}
+    #leaderboardView .leaderboard{margin-top:0}
+    #leaderboardView .leaderboard h2{font-size:13px;color:#e9e4f2;text-transform:none;letter-spacing:0}
+    #leaderboardView #leaderboardClose{margin-top:14px;width:100%}
   </style>
 </head>
 <body>
@@ -52,7 +59,13 @@
           <label class="name-row"><span>Name</span><input id="playerName" type="text" maxlength="16" placeholder="Your name" autocomplete="off" spellcheck="false"></label>
           <button id="playButton" type="button">Play</button>
           <button id="checkUpdateButton" type="button">Проверить обновления</button>
-          <div id="leaderboard" class="leaderboard"></div>
+          <button id="leaderboardButton" type="button" class="link-btn">Leaderboard</button>
+        </div>
+      </div>
+      <div id="leaderboardView" class="overlay hidden">
+        <div class="panel">
+          <div id="leaderboardList" class="leaderboard"></div>
+          <button id="leaderboardClose" type="button">Close</button>
         </div>
       </div>
     </section>
